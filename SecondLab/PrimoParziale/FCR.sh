@@ -12,7 +12,8 @@ do
 	fi
 done
 
-if test `wc -l < /tmp/contafile$$` -eq $2
+numfile=`wc -l </tmp/contafile$$`
+if test numfile -eq $2
 then
 	>/tmp/contarighe$$
 	for i in `cat /tmp/contafile$$`
@@ -20,7 +21,8 @@ then
 		echo $i >/tmp/contarighe$$
 	done
 
-	if test `wl -l < /tmp/contarighe$$` -eq $3
+	numrighe=`wl -l < /tmp/contarighe$$`
+	if test numrighe  -eq $3
 	then
 		if grep $4 /tmp/contarighe$$
 		then echo Carattere trovato all'interno di un file della directory `pwd`
