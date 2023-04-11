@@ -6,7 +6,7 @@ case $# in
 0|1|2)
 	echo Pochi parametri: usage is singlechar dirass dirass [dirass]; exit 1;;
 *)
-	echo DEBUG-OK: si procede all'esecuzione del programma con $# parametri;;
+	echo DEBUG-OK: si procede alla esecuzione del programma con $# parametri;;
 esac
 
 #controllo sul tipo dei parametri
@@ -45,7 +45,7 @@ export PATH
 #chiamata al file comandi ricorsivo con ogni gerarchia
 for i in $*
 do
-	echo Si inizia l'esplorazione della gerarchia $i
+	echo Si inizia la esplorazione della gerarchia $i
 	FCR.sh $i $C /tmp/nomiAssoluti
 done
 
