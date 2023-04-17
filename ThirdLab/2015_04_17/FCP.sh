@@ -4,7 +4,7 @@
 #controllo sul numero dei parametri
 case $# in
 0|1|2) echo Pochi parametri passati, usage is num dirass dirass; exit 1;;
-*) echo DEBUG-OK: si procede all'esecuzione di FCP.sh con $# parametri;;
+*) echo DEBUG-OK: si procede alla esecuzione di FCP.sh con $# parametri;;
 esac
 
 #controllo sul tipo dei parametri
