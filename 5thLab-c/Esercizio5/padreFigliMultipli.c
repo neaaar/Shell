@@ -31,18 +31,18 @@ int main(int argc, char* argv[]) {
             exit(i);
         }
 
-        int status;
+        /* int status;
         wait(&status);
         int ret = status>>8;
         ret &= 0XFF;
-        printf("ID del processo figlio: %d, suo valore di ritorno: %d\n", forkret, ret);
+        printf("ID del processo figlio: %d, suo valore di ritorno: %d\n", forkret, ret); */
     }
 
-    /* for(i = 0; i < num; i++) {
+    for(i = 0; i < num; i++) {
         int status;
         int forkret = wait(&status);
         int ret = status>>8;
         ret &= 0XFF; 
         printf("ID del processo figlio: %d, suo valore di ritorno: %d\n", forkret, ret);
-    } */
+    }
 }
