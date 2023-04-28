@@ -1,0 +1,2 @@
+padreFigliConConteggioOccorrenze: padreFigliConConteggioOccorrenze.c
+	gcc -Wall padreFigliConConteggioOccorrenze.c -o padreFigliConConteggioOccorrenze
