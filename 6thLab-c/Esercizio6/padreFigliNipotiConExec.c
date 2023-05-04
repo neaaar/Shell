@@ -4,6 +4,7 @@
 #include <fcntl.h>
 #include <string.h>
 #include <sys/wait.h>
+#define PERMS 0644
 
 int main(int argc, char* argv[]) {
     int status;
@@ -30,13 +31,15 @@ int main(int argc, char* argv[]) {
 
         if(pid == 0) {
             char *file = malloc(strlen(argv[i + 1]) + strlen(".sort") + 1);
-            file = strcat(argv[i + 1], ".sort");
-            int fd = creat(file, O_RDWR);
+            strcpy(file, argv[i + 1]);
+            strcat(file, ".sort");
+            int fd = creat(file, PERMS);
 
             if(fd < 0) {
                 printf("Errore nella creazione del file\n");
                 exit(3);
             }
+            close(fd);
 
             int pidnip = fork();
             if(pidnip < 0) {
@@ -46,10 +49,16 @@ int main(int argc, char* argv[]) {
 
             if(pidnip == 0) {
                 close(0);
-                open(argv[i + 1], O_RDONLY);
+                if((open(argv[i + 1], O_RDONLY)) < 0) {
+                    printf("Errore nell'apertura di %s", argv[i + 1]);
+                }
                 close(1);
-                open(file, O_RDWR);
+                if((open(file, O_WRONLY)) < 0) {
+                    printf("Errore nell'apertura di %s", file);
+                }
+
                 execlp("sort", "sort", (char *)0);
+                perror("Errore nel comando sort\n");
                 exit(-1);
             }
 
