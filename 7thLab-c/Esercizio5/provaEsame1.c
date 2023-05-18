@@ -19,10 +19,9 @@ int main(int argc, char* argv[]) {
         exit(1);
     }
 
-    int *fd;
-    fd = malloc(nfile*sizeof(int));
+    int fd;
     for(i = 0; i < nfile; i++) {
-        if((fd[i] = open(argv[i + 1], O_RDONLY)) < 0) {
+        if((fd = open(argv[i + 1], O_RDONLY)) < 0) {
             printf("Errore nell'apertura del file di parametro numero %d", i + 1);
             exit(2);
         }
@@ -47,7 +46,13 @@ int main(int argc, char* argv[]) {
 
                 char c;
                 char lastc;
-                while(read(fd[i + 1], &c, sizeof(char)) > 0) {
+                
+                fd = open(argv[i + 1], O_RDONLY);
+                if(fd < 0) {
+                    printf("Errore nella open\n");
+                    exit(7);
+                }
+                while(read(fd, &c, sizeof(char)) > 0) {
                     if((c >= 65 && c <= 90) || (c >= 97 && c <= 122)) {
                         /*abbiamo trovato un carattere alfabetico*/
                         write(piped[0][1], &c, sizeof(char));
@@ -67,7 +72,13 @@ int main(int argc, char* argv[]) {
 
                 char c;
                 int lastc;
-                while(read(fd[i + 1], &c, sizeof(char)) > 0) {
+
+                fd = open(argv[i + 1], O_RDONLY);
+                if(fd < 0) {
+                    printf("Errore nella open\n");
+                    exit(8);
+                }
+                while(read(fd, &c, sizeof(char)) > 0) {
                     if(c >= 47 && c <= 57) {
                         /*abbiamo trovato un carattere numerico*/
                         write(piped[0][1], &c, sizeof(char));
@@ -85,43 +96,38 @@ int main(int argc, char* argv[]) {
     close(piped[0][1]);
     close(piped[1][1]);
     /*chiudiamo i lati di scrittura delle pipe*/
-    int totchar = 0;
-    char c1;
-    char c2;
-    while(1) {
-        if(read(piped[0][0], &c1, sizeof(char)) > 0) {
-            printf("%c", c1);
-            totchar++;
-        }
+    int tot = 0;
+    char ch0;
+    char ch1;
+    int nr0 = read(piped[0][0], &ch0, 1);
+  	int nr1 = read(piped[1][0], &ch1, 1);
 
-        if(read(piped[1][0], &c2, sizeof(char)) > 0) {
-            printf("%c", c2);
-            totchar++;
-        }
-
-        if(read(piped[0][0], &c1, sizeof(char)) <= 0 && read(piped[1][0], &c1, sizeof(char)) <= 0) {
-            break;
-        }
-    }
+  	while ((nr0 != 0) || (nr1 != 0)) {
+    		tot = tot + nr0 + nr1; /* il totale viene ricavato sommando via via i valori di ritorno delle read da pipe, ricordando che uno dei due puo' anche essere 0 nel qual caso una delle due write seguenti NON avra' effetto */
+    		write(1, &ch1, nr1); /* ATTENZIONE ALL'ORDINE: prima un alfabetico e poi un numerico (secondo la specifica) */
+    		write(1, &ch0, nr0);
+    		nr0 = read(piped[0][0], &ch0, 1);
+    		nr1 = read(piped[1][0], &ch1, 1);
+  	}
 
     int status;
     for(i = 0; i < nfile; i++) {
         if((pid = wait(&status)) < 0) {
-            printf("Errore nella wait per il figlio di indice %d", i);
+            printf("Errore nella wait per il figlio di indice %d\n", i);
             exit(4);
         }
 
         if(status & 0XFF) {
-            printf("Errore nel figlio di indicie %d", i);
+            printf("Errore nel figlio di indice %d\n", i);
             exit(5);
         }
 
         int ret = (status >> 8) & 0XFF;
-        printf("Terminato figlio con pid %d, ha ritornato %d", pid, ret);
+        printf("Terminato figlio con pid %d, ha ritornato %d\n", pid, ret);
     }
 
     /*una volta aspettati tutti i figli*/
-    printf("Numero totale di caratteri stampati dai figli: %d\n", totchar);
+    printf("Numero totale di caratteri stampati dai figli: %d\n", tot);
 
     exit(0);
 }
