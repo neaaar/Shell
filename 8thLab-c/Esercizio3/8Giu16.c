@@ -44,6 +44,11 @@ int main(int argc, char* argv[]) {
     pipedsonfather = malloc(nfile * sizeof(pipe_t));
 
     int i;
+    for(i = 0; i < nfile; i++) {
+        pipe(pipedfatherson[i]);
+        pipe(pipedsonfather[i]);
+    }
+
     int pid;
     for(i = 0; i < nfile; i++) {
         if((pid = fork()) < 0) {
