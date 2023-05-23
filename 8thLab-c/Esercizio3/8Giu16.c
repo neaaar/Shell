@@ -8,7 +8,21 @@
 #define PERMS 0644
 typedef int pipe_t[2];
 
-int main(int argc, sschar* argv[]) {
+int mia_random(int n) {
+    int casuale;
+    casuale = rand() % n;
+    return casuale;
+}
+
+void azzerabuffer(char* c) {
+    int i;
+    for(i = 0; i < 255; i++) {
+        c[i] = 0;
+    }
+    return;
+}
+
+int main(int argc, char* argv[]) {
     if(argc < 6) {
         printf("Errore: pochi parametri\n");
         exit(1);
@@ -32,7 +46,7 @@ int main(int argc, sschar* argv[]) {
     int i;
     int pid;
     for(i = 0; i < nfile; i++) {
-        if(pid = fork() < 0) {
+        if((pid = fork()) < 0) {
             printf("Errore nella fork\n");
             exit(3);
         }
@@ -41,22 +55,43 @@ int main(int argc, sschar* argv[]) {
             /*siamo nel figlio*/
             int j;
             for(j = 0; j < nfile; j++) {
+                if(j != i) {
+                    close(pipedfatherson[j][1]);
+                    close(pipedsonfather[j][0]);
+                }
                 close(pipedfatherson[j][0]);
                 close(pipedsonfather[j][1]);
             }
 
+            int fd;
+            if((fd = open(argv[i + 1], O_RDONLY)) < 0) {
+                printf("Errore nella open per il file di indice %d\n", i + 1);
+                exit(-1);
+            }
+
             char c[255];
             int k = 0;
-            while(read(argv[i + 1], &c, sizeof(char)) > 0) {
+            int righescritte = 0;
+            while(read(fd, &c, sizeof(char)) > 0) {
                 if(c[k] == '\n') {
-                    write(pipedfatherson[1], strlen(c), sizeof(c));
+                    int lunghezza = strlen(c);
+                    write(pipedfatherson[i][1], &lunghezza, sizeof(int));
+                    int indicericevuto;
+                    read(pipedsonfather[i][0], &indicericevuto, sizeof(int));
+
+                    if(indicericevuto < k) {
+                        write(Fcreato, &c[indicericevuto], sizeof(char));
+                        righescritte++;
+                    }
+
                     azzerabuffer(c);
+                    k = 0;
                     continue;
                 }
                 k++;
             }
 
-            /*da finire*/
+            exit(righescritte);
         }
     }
 
@@ -70,24 +105,26 @@ int main(int argc, sschar* argv[]) {
     for(i = 0; i < num; i++) {
         int numrandom;
         read(pipedfatherson[mia_random(nfile)][0], &numrandom, sizeof(int));
+        int indice = mia_random(numrandom);
 
         int j;
         for(j = 0; j < nfile; j++) {
-            write(pipedsonfather[j][1], &numrandom, sizeof(int));
+            write(pipedsonfather[j][1], &indice, sizeof(int));
         }
     }
-}
 
-int mia_random(int n) {
-    int casuale;
-    casuale = rand() % n;
-    return casuale;
-}
+    int status;
+    for(i = 0; i < nfile; i++) {
+        if((pid = wait(&status)) < 0) {
+            printf("Errore nella wait per il figlio %d\n", i);
+        }
 
-void azzerabuffer(char* c) {
-    int i;
-    for(i = 0; i < 255; i++) {
-        c[i] = 0;
+        if((status & 0XFF) < 0) {
+            printf("Errore nell'esecuzione del figlio di indice %d\n", i);
+        }
+
+        int ret = (status >> 8) & 0XFF;
+        printf("Il figlio di pid %d è terminato con valore di ritorno %d\n", pid, ret);
     }
-    return;
+    exit(0);
 }
