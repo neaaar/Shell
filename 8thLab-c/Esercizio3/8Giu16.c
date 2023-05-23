@@ -72,10 +72,11 @@ int main(int argc, char* argv[]) {
             char c[255];
             int k = 0;
             int righescritte = 0;
-            while(read(fd, &c, sizeof(char)) > 0) {
+            while(read(fd, &c[k], sizeof(char)) > 0) {
                 if(c[k] == '\n') {
-                    int lunghezza = strlen(c);
-                    write(pipedfatherson[i][1], &lunghezza, sizeof(int));
+                    k++;
+                    printf("La pipe %d manda %d\n", i, k);
+                    write(pipedfatherson[i][1], &k, sizeof(k));
                     int indicericevuto;
                     read(pipedsonfather[i][0], &indicericevuto, sizeof(int));
 
@@ -86,9 +87,9 @@ int main(int argc, char* argv[]) {
 
                     azzerabuffer(c);
                     k = 0;
-                    continue;
+                } else {
+                    k++;
                 }
-                k++;
             }
 
             exit(righescritte);
@@ -103,13 +104,22 @@ int main(int argc, char* argv[]) {
     }
 
     for(i = 0; i < num; i++) {
-        int numrandom;
-        read(pipedfatherson[mia_random(nfile)][0], &numrandom, sizeof(int));
-        int indice = mia_random(numrandom);
+        int r = mia_random(nfile);
 
-        int j;
+        int valore;
+        int giusto;
         for(j = 0; j < nfile; j++) {
-            write(pipedsonfather[j][1], &indice, sizeof(int));
+            read(pipedfatherson[j][0], &valore, sizeof(valore));
+            printf("Il valore letto dalla pipe %d per l'indice %d è %d\n", j, i, valore);
+            if(j == r) {
+                giusto = valore;
+            }
+        }
+
+        printf("Il padre per l'indice %d ha letto dalla pipe %d e generato l'indice %d\n", i, r, giusto);
+
+        for(j = 0; j < nfile; j++) {
+            write(pipedsonfather[j][1], &giusto, sizeof(int));
         }
     }
 
